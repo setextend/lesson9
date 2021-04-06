@@ -11,7 +11,7 @@ class MessageService() : CrudInterface<Message> {
     }
 
     override fun read(): List<Message> {
-        return messages.filter { !it.deleted }
+        return messages.filter { !it.deleted && !it.readed }
     }
 
     override fun update(entity: Message): Boolean {
@@ -32,11 +32,15 @@ class MessageService() : CrudInterface<Message> {
 
     fun read(chatId: Int, lastMessageId: Int, messCount: Int): List<Message> {
         return when (messCount) {
-            0 -> messages
-                .filter { it.chatId == chatId && it.id >= lastMessageId }
-            else -> messages
-                .filter { it.chatId == chatId && it.id >= lastMessageId }
+            0 -> messages.asSequence()
+                .filter { it.chatId == chatId }
+                .filter { it.id >= lastMessageId }
+                .toList()
+            else -> messages.asSequence()
+                .filter { it.chatId == chatId }
+                .filter { it.id >= lastMessageId }
                 .take(messCount)
+                .toList()
         }
     }
 
@@ -45,16 +49,15 @@ class MessageService() : CrudInterface<Message> {
     }
 
     fun markReaded(chatId: Int, lastMessageId: Int, messCount: Int) {
-        for (message in read(chatId = chatId, lastMessageId = lastMessageId, messCount = messCount)) {
-            markReaded(message.id)
-        }
+        read(chatId, lastMessageId, messCount).asSequence()
+            .map { m -> m.apply { markReaded(m.id) } }
+            .toList()
     }
 
     fun deleteAll(chatId: Int) {
-        for (message in messages) {
-            if (message.chatId == chatId) {
-                message.deleted = true
-            }
-        }
+        messages.asSequence()
+            .filter { c -> c.chatId == chatId }
+            .map { c -> c.apply { deleted = true } }
+            .toList()
     }
 }

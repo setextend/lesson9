@@ -1,8 +1,0 @@
-package lesson9data
-
-fun main(args: Array<String>){
-    val chat = Chat(1,1,arrayOf(1, 2, 3))
-    val chatService = ChatService()
-
-
-}
