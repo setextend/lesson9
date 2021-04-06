@@ -6,7 +6,7 @@ class ChatService() : CrudInterface<Chat> {
 
     override fun create(entity: Chat): Boolean {
         val id = chatMass.size + 1
-        chatMass.add(entity.copy(userId = id))
+        chatMass.add(entity.copy(id = id))
         return true
     }
 
@@ -21,7 +21,10 @@ class ChatService() : CrudInterface<Chat> {
     }
 
     override fun delete(id: Int) {
-        chatMass.filter { it.id == id }[0].deleted = true
+        chatMass.asSequence()
+            .filter { it.id == id }
+            .map { c -> c.apply { c.deleted = true }}
+            .toList()
     }
 
 
@@ -30,7 +33,10 @@ class ChatService() : CrudInterface<Chat> {
     }
 
     fun restore(id: Int) {
-        chatMass.filter { it.id == id }[0].deleted = false
+        chatMass.asSequence()
+            .filter { it.id == id }
+            .map { c -> c.apply { c.deleted = false } }
+            .toList()
     }
 
     fun getUnreadChatsCount(userId: Int): Int {
